@@ -7,7 +7,7 @@ This is a "file docstring" and should appear at the top of each file describing
 what the file does.
 """
 
-import sorting, searching
+import sorting, searching, copy
 
 class UnsortedError(Exception):
     """Raised when an operation required sorted order and the list is not sorted.
@@ -70,11 +70,38 @@ Call sort() method first."""
 
             raise UnsortedError(msg)
 
-
         return searching.binary_search(self._list, target)
 
+    def __contains__(self, target):
+        """Defined to use the `in` operator on LazySortedList. Use binary search,
+        and return True if target is in the list, and False otherwise.
+        Runs in lgn time"""
+        return self.binary_search(target) != None
 
+    def __len__(self):
+        """Returns length of this LSL. Called with len() function"""
+        return len(self._list)
 
+    def __getitem__(self, index):
+        """Returns the elment at the given index.
+        Called using square brackets: fruit[3]"""
+        return self._list[index]
+
+    def order_statistic(self, k):
+        """Returns the kth largest element in the list (0-indexed).
+        Ensures that the list is sorted first.
+        Runs in constant time"""
+        if self._is_sorted:
+            return self[k]
+        else:
+            raise UnsortedError(f"""Cannot call order_statistic on an unsorted list:
+{self}
+Call sort() first.""")
+
+    def __eq__(self, other):
+        """Called using == operator.
+        True if self and other have the same list and same sorted status"""
+        return self._list == other._list and self._is_sorted == other._is_sorted
 
 def main():
     fruit = LazySortedList()
@@ -121,6 +148,56 @@ def main():
 
     print("Yay, we made it here")
 
+    print("\n==== in =====")
+    if "apple" in fruit:
+        print(f"apple is in {fruit}:")
+    else:
+        print(f"apple is NOT in {fruit}:")
+
+    if "watermelon" in fruit:
+        print(f"watermelon is in {fruit}:")
+    else:
+        print(f"watermelon is NOT in {fruit}:")
+
+    print(f"The length of {fruit} is {len(fruit)}")
+
+    print(fruit[4])
+
+    print(fruit)
+    print(fruit.order_statistic(3))
+    # fruit.append("mangosteen")
+    # print(fruit.order_statistic(3))
+
+    print("\n==== equals =====")
+    groceries = LazySortedList(['apple', 'grape', 'orange', 'peach', 'strawberry'])
+
+    print("Is fruit equal to groceries?", fruit == groceries)
+    groceries.sort()
+    print("Is fruit equal to groceries after sorting?", fruit == groceries)
+
+    ## Aliases
+
+    johns_fruit = fruit
+    brents_fruit = copy.deepcopy(fruit)
+    print(johns_fruit)
+    fruit.append("mangosteen")
+    print(johns_fruit)
+    print(brents_fruit)
+
+    ## immutable - cannot be changed
+
+    ## list of LSL objects:
+    lists = [fruit, numbers, veggies]
+    print("----")
+    for lst in lists:
+        print(lst)
+
+    ## Shallow copy
+    other_lists = list(lists)
+    lists.append(5)
+    print("----")
+    for lst in other_lists:
+        print(lst)
 
 
 
